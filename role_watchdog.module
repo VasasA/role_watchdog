@@ -18,7 +18,8 @@ function role_watchdog_help($section) {
     case 'admin/modules#description':
       return t('Logs changes to user roles.');
 
-    case 'admin/settings/role_watchdog':
+    case 'admin/help#role_watchdog':
+    case 'admin/user/roles/role_watchdog':
       return t('Role Watchdog automatically logs all role changes made through the user profile or the User List. Role Watchdog can also monitor one or more roles for user additions or deletions and notify via email whenever a change occurs.');
   }
 }
@@ -30,7 +31,7 @@ function role_watchdog_menu($may_cache) {
   $items = array();
   if ($may_cache) {
     $items[] = array(
-      'path' => 'admin/settings/role_watchdog',
+      'path' => 'admin/user/roles/role_watchdog',
       'title' => 'Role watchdog',
       'description' => t('Logs changes to user roles.'),
       'callback' => 'drupal_get_form',
@@ -151,7 +152,7 @@ function role_watchdog_user_admin_account_submit($form, &$form_state) {
  *
  * Handles addition of roles.
  */
-function _role_watchdog_add_role($rid, $old_roles, $account) {
+function _role_watchdog_add_role($rid, $old_roles = array(), $account) {
   if (!in_array($rid, $old_roles)) {
     global $user;
     $roles = user_roles();
@@ -170,7 +171,7 @@ function _role_watchdog_add_role($rid, $old_roles, $account) {
  *
  * Handles removal of roles.
  */
-function _role_watchdog_remove_role($rid, $old_roles, $account, $in_array = TRUE) {
+function _role_watchdog_remove_role($rid, $old_roles = array(), $account, $in_array = TRUE) {
   if ($rid > 2 && (in_array($rid, $old_roles) xor !$in_array)) {
     global $user;
     $roles = user_roles();
@@ -202,7 +203,7 @@ function _role_watchdog_set_message($count) {
  */
 function _role_watchdog_notification($rid, $message) {
   $monitor_roles = variable_get('role_watchdog_monitor_roles', NULL);
-  if (in_array($rid, $monitor_roles)) {
+  if (in_array($rid, (array)$monitor_roles)) {
     $site_name = variable_get('site_name', 'Drupal');
     $from = "$site_name <" . variable_get('site_mail', ini_get('sendmail_from')) . '>';
     $subject = t('Role Watchdog notification on !site_name', array('!site_name' => $site_name));
@@ -245,7 +246,7 @@ function _role_watchdog_get_notification_list() {
     }
 
     //special case: superuser
-    if (in_array(SUPERUSER_RID, $notification_roles)) {
+    if (in_array(SUPERUSER_RID, (array)$notification_roles)) {
       $sql = "
         SELECT u.mail
           FROM {users} u
