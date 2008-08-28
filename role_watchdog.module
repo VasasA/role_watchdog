@@ -19,9 +19,28 @@ function role_watchdog_help($section) {
       return t('Logs changes to user roles.');
 
     case 'admin/help#role_watchdog':
-    case 'admin/user/roles/role_watchdog':
-      return t('Role Watchdog automatically logs all role changes made through the user profile or the User List. Role Watchdog can also monitor one or more roles for user additions or deletions and notify via email whenever a change occurs.');
+      return t('<p>Role Watchdog has three modes of operation. The module will automatically start 
+recording all role changes in the watchdog log. No further configuration is 
+necessary for this functionality, the module will do this "out of the box".</p>
+
+<p>Role Watchdog can optionally email members of selected Notify roles when 
+selected Monitor roles are added or removed. This was specifically added to 
+keep a closer eye on certain role changes, such as an Administrator role. At 
+least one Monitor role and one Notify role must be selected for this 
+functionality.</p>
+
+<p>Role Watchdog can optionally log role changes in its own table and display the 
+role history on each user\'s page. Users will need either "View role history" or 
+"View own role history" access permissions to view the tab. This functionality 
+was added for a more permanent audit of role history.</p>');
   }
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function role_watchdog_perm() {
+  return array('view role history', 'view own role history');
 }
 
 /**
@@ -29,6 +48,7 @@ function role_watchdog_help($section) {
  */
 function role_watchdog_menu($may_cache) {
   $items = array();
+
   if ($may_cache) {
     $items[] = array(
       'path' => 'admin/user/roles/role_watchdog',
@@ -40,6 +60,29 @@ function role_watchdog_menu($may_cache) {
 	    'access' => user_access('administer site configuration'), //do we *really* need yet another permission??
     );
   }
+
+  else {
+    if (arg(0) == 'user' && (int)arg(1) && variable_get('role_watchdog_history', 0)) {
+      if ($account = user_load(array('uid' => arg(1)))) {
+
+        $access = user_access('view role history');
+        if (!$access) {
+          global $user;
+          $access = ($user->uid == $account->uid && user_access('view own role history')) ? true: false;
+        }
+
+        $items[] = array(
+          'path'                => 'user/' .arg(1). '/role_history',
+          'title'               => t('Role History'),
+          'callback'            => 'role_watchdog_history',
+          'callback arguments'  => array($account),
+          'type'                => MENU_LOCAL_TASK,
+          'access'              => $access,
+        );
+
+      }
+    }
+  }
   return $items;
 }
 
@@ -50,14 +93,32 @@ function role_watchdog_menu($may_cache) {
  *   array of form content.
  */
 function role_watchdog_admin_settings() {
+  $form = array();
+  
+  $form['watchdog'] = array(
+    '#type' => 'fieldset', 
+    '#title' => t('Watchdog Logging'),
+    '#description' => t('Role Watchdog automatically logs all role changes made. No further configuration is necessary for this functionality.'),
+  );
+  $form['watchdog']['description'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable Watchdog Logging'),
+    '#default_value' => TRUE,
+    '#attributes' => array('disabled' => 'disabled'),
+  );
+
+  $form['email'] = array(
+    '#type' => 'fieldset', 
+    '#title' => t('Email Notification'),
+    '#description' => t('Role Watchdog can monitor one or more roles for changes and notify members of selected roles via email whenever a change occurs. At least one Monitor and one Notify role must be selected for this functionality.'),
+  );
   $role_names = array();
   $sql = "SELECT * FROM {role} r WHERE r.rid > 2 ORDER BY name";
   $results = db_query($sql);
   while ($result = db_fetch_object($results)) {
     $role_names[$result->rid] = $result->name;
   }
-
-  $form['role_watchdog_monitor_roles'] = array(
+  $form['email']['role_watchdog_monitor_roles'] = array(
     '#type' => 'select',
     '#title' => t('Monitor for change'),
     '#options' => $role_names,
@@ -65,7 +126,7 @@ function role_watchdog_admin_settings() {
     '#description' => t('Select roles to monitor for change.'),
     '#multiple' => TRUE,
   );
-  $form['role_watchdog_notify_roles'] = array(
+  $form['email']['role_watchdog_notify_roles'] = array(
     '#type' => 'select',
     '#title' => t('Notify on change'),
     '#options' => array(SUPERUSER_RID => 'Superuser (uid 1)') + $role_names,
@@ -73,6 +134,23 @@ function role_watchdog_admin_settings() {
     '#description' => t('Select roles to notify on change.'),
     '#multiple' => TRUE,
   );
+
+  if (db_table_exists('role_watchdog')) {
+    $form['history'] = array(
+      '#type' => 'fieldset', 
+      '#title' => t('Role History'),
+      '#description' => t('Role Watchdog can log role changes in its own table and display the role history on each user\'s page. Users will need either "View role history" or "View own role history" !access to view the tab.', array('!access' => l(t('access permissions'), 'admin/user/access', NULL, NULL, 'module-role_watchdog'))),
+    );
+    $form['history']['role_watchdog_history'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable Role History'),
+      '#default_value' => variable_get('role_watchdog_history', 0),
+    );
+  }
+  else {
+    drupal_set_message(t('Your database schema is out of date. Please run !update.php to access the module\'s latest features.', array('!update.php' => l('update.php', 'update.php'))), 'warning');
+  }
+
   return system_settings_form($form);
 }
 
@@ -100,10 +178,13 @@ function role_watchdog_user($type, &$edit, &$account, $category = NULL) {
  *   An associative array containing the structure of the form.
  */
 function role_watchdog_form_alter($form_id, &$form) {
-  if ($form_id == 'user_admin_account') {
-    if (user_access('administer access control')) {
-      $form['#submit'] = array('role_watchdog_user_admin_account_submit' => array()) + (array)$form['#submit'];
-    }
+  switch ($form_id) {
+    case 'user_admin_account':
+    case 'userlist_user_admin_account':
+      if (user_access('administer access control')) {
+        $form['#submit'] = array('role_watchdog_user_admin_account_submit' => array()) + (array)$form['#submit'];
+      }
+      break;
   }
 }
 
@@ -156,10 +237,13 @@ function _role_watchdog_add_role($rid, $old_roles = array(), $account) {
   if (!in_array($rid, $old_roles)) {
     global $user;
     $roles = user_roles();
-    $message = t('%user added role %role to %account', array('%user' => $user->name, '%role' => $roles[$rid], '%account' => $account->name));
+    $message = t('Role %role added to %account by %user', array('%user' => $user->name, '%role' => $roles[$rid], '%account' => $account->name));
 
     watchdog('user', $message);
     _role_watchdog_notification($rid, $message);
+    if (variable_get('role_watchdog_history', 0)) {
+      db_query('INSERT INTO {role_watchdog} (aid, rid, action, uid, stamp) VALUES (%d, %d, %d, %d, %d)', $account->uid, $rid, 1, $user->uid, time());
+    }
 
     return 1;
   }
@@ -175,10 +259,13 @@ function _role_watchdog_remove_role($rid, $old_roles = array(), $account, $in_ar
   if ($rid > 2 && (in_array($rid, $old_roles) xor !$in_array)) {
     global $user;
     $roles = user_roles();
-    $message = t('%user removed role %role from %account', array('%user' => $user->name, '%role' => $roles[$rid], '%account' => $account->name));
+    $message = t('Role %role removed from %account by %user', array('%user' => $user->name, '%role' => $roles[$rid], '%account' => $account->name));
 
     watchdog('user', $message);
     _role_watchdog_notification($rid, $message);
+    if (variable_get('role_watchdog_history', 0)) {
+      db_query('INSERT INTO {role_watchdog} (aid, rid, action, uid, stamp) VALUES (%d, %d, %d, %d, %d)', $account->uid, $rid, 0, $user->uid, time());
+    }
 
     return 1;
   }
@@ -232,32 +319,89 @@ function _role_watchdog_get_notification_list() {
     $role_watchdog_notification_list = array();
     $notification_roles = variable_get('role_watchdog_notify_roles', NULL);
 
-    $roles = implode(',', $notification_roles);
-    $sql = "
-      SELECT DISTINCT u.mail
-        FROM {users} u
-        INNER JOIN {users_roles} r ON u.uid = r.uid
-        WHERE r.rid IN (%s)
-    ";
-    $result = db_query($sql, $roles);
+    if (count($notification_roles)) {
+      $sql = "SELECT DISTINCT u.mail FROM {users} u INNER JOIN {users_roles} r ON u.uid = r.uid WHERE r.rid IN (%s)";
+      $result = db_query($sql, implode(',', $notification_roles));
 
-    while($account = db_fetch_object($result)) {
-      $role_watchdog_notification_list[] = $account->mail;
-    }
+      while($account = db_fetch_object($result)) {
+        $role_watchdog_notification_list[] = $account->mail;
+      }
 
-    //special case: superuser
-    if (in_array(SUPERUSER_RID, (array)$notification_roles)) {
-      $sql = "
-        SELECT u.mail
-          FROM {users} u
-          WHERE u.uid = %d
-      ";
-      $result = db_result(db_query($sql, 1));
-      if (!in_array($result, $role_watchdog_notification_list)) {
-        $role_watchdog_notification_list[] = $result;
+      //special case: superuser
+      if (in_array(SUPERUSER_RID, (array)$notification_roles)) {
+        $sql = "SELECT u.mail FROM {users} u WHERE u.uid = %d";
+        $result = db_result(db_query($sql, 1));
+        if (!in_array($result, $role_watchdog_notification_list)) {
+          $role_watchdog_notification_list[] = $result;
+        }
       }
     }
   }
 
   return $role_watchdog_notification_list;
+}
+
+/**
+ * Display tab page from menu callback.
+ *
+ * @param $account
+ *   User object.
+ */
+function role_watchdog_history(&$account) {
+  if (!variable_get('role_watchdog_history', 0)) drupal_access_denied();
+  drupal_set_title($account->name);
+
+  $roles = $account->roles;
+  unset($roles[2]);
+  $output = sizeof($roles) ? '<h4>' . t('Roles') . '</h4>' . implode(", ", array_keys(array_flip($roles))) : '';
+
+  $view_profile = user_access('access user profiles');
+      
+  $sql = 'SELECT rw.action, rw.uid, rw.stamp, u.name, r.name AS role FROM {role_watchdog} rw INNER JOIN {users} u USING (uid) INNER JOIN {role} r USING (rid) WHERE rw.aid=%d ORDER BY rw.stamp DESC';
+  $result = db_query($sql, $account->uid);
+  while ($row = db_fetch_object($result)) {
+    $rows[] = array(
+      format_date($row->stamp),
+      $row->role,
+      $row->action ? t('added by') : t('removed by'),
+      $view_profile ? l($row->name, 'user/' . $row->uid) : $row->name,
+    );
+  }
+
+  if (sizeof($rows)) {
+    $header = array(
+      array('data' => 'Date', 'style' => 'width: 25%;'),
+      array('data' => 'Role', 'style' => 'width: 30%;'),
+      array('data' => 'Change', 'style' => 'width: 15%;'),
+      array('data' => 'User', 'style' => 'width: 40%;')
+    );
+    
+    $output .= '<h4>' . t('Role History') . '</h4>' . theme('table', $header, $rows, array('style' => 'width: 99%;'));
+  }
+
+  $sql = 'SELECT rw.action, rw.aid, rw.stamp, u.name, r.name AS role FROM {role_watchdog} rw INNER JOIN {users} u ON (rw.aid = u.uid) INNER JOIN {role} r USING (rid) WHERE rw.uid=%d ORDER BY rw.stamp DESC';
+  $result = db_query($sql, $account->uid);
+  while ($row = db_fetch_object($result)) {
+    $rows2[] = array(
+      format_date($row->stamp),
+      $row->role,
+      $row->action ? t('added to') : t('removed from'),
+      $view_profile ? l($row->name, 'user/' . $row->aid) : $row->name,
+    );
+  }
+
+  if (sizeof($rows2)) {
+    $header = array(
+      array('data' => 'Date', 'style' => 'width: 25%;'),
+      array('data' => 'Role', 'style' => 'width: 30%;'),
+      array('data' => 'Change', 'style' => 'width: 15%;'),
+      array('data' => 'User', 'style' => 'width: 40%;')
+    );
+    
+    $output .= '<h4>' . t('Role Changes Made') . '</h4>' . theme('table', $header, $rows2, array('style' => 'width: 99%;'));
+  }
+
+  if (!$output) $output = t('No Role History found.');
+
+  return $output;
 }
