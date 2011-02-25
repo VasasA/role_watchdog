@@ -1,3 +1,2 @@
-; $Id$
 name = Role Watchdog
 description = Logs changes to user roles.
