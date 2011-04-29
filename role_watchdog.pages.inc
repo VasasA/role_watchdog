@@ -14,12 +14,12 @@
 function role_watchdog_history($account) {
   $output = '';
   $rows = $rows2 = array();
-  
+
   $roles = user_roles();
   $roles_account = $account->roles;
   unset($roles_account[DRUPAL_AUTHENTICATED_RID]); // No built-in roles.
   $roles_output = count($roles_account) ? '<h3>' . t('Roles') . '</h3>' . theme('item_list', array('items' => array_keys(array_flip($roles_account)))) : '';
-  
+
   $view_profile = user_access('access user profiles');
 
   $result = db_query('SELECT rw.rid, rw.action, rw.uid, rw.stamp, u.name FROM {role_watchdog} rw INNER JOIN {users} u USING (uid) WHERE rw.aid = :aid ORDER BY rw.stamp DESC', array(':aid' => $account->uid));

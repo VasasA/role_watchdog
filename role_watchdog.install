@@ -63,7 +63,7 @@ function role_watchdog_schema() {
  * Implements hook_install().
  */
 function role_watchdog_install() {
-  drupal_set_message(st('Role watchdog table installed. !config', array('!config' => l(st('Configure Role watchdog'), 'admin/config/people/role_watchdog'),)));
+  drupal_set_message(st('Role watchdog table installed. !config', array('!config' => l(st('Configure Role watchdog'), 'admin/config/people/role_watchdog'))));
 }
 
 /**

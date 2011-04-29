@@ -21,8 +21,8 @@ None. Database logging is a Core (optional) module.
 Tested compatible with:
 * user edit (e.g. http://example.com/user/3/edit)
 * user list (e.g. http://example.com/admin/user/user)
-* Views Bulk Operations (VBO) 6.x-1.10
-* Role Delegation 6.x-1.4
+* Views Bulk Operations (VBO) 6.x-1.10, 7.x-3.x-dev
+* Role Delegation 6.x-1.4, 7.x-1.0
 
 Related Modules
 ---------------

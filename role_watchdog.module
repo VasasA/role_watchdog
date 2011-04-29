@@ -29,11 +29,11 @@ function role_watchdog_help($path, $arg) {
 function role_watchdog_permission() {
   return array(
     'view role history' => array(
-      'title' => t('view role history'),
+      'title' => t('View role history'),
       'description' => t('View role changes on all user pages'),
     ),
     'view own role history' => array(
-      'title' => t('view own role history'),
+      'title' => t('View own role history'),
       'description' => t('View role changes on own user page'),
     ),
   );
@@ -182,13 +182,13 @@ function _role_watchdog_add_role($rid, $old_roles = array(), $account) {
         '!account' => $account->name,
         '!account_id' => $account->uid,
       );
-      watchdog('role_watchdog', $vars['body'], $vars);
+      watchdog('role_watchdog', $vars['body'], $vars, WATCHDOG_NOTICE, l(t('view'), 'user/' . $account->uid . '/role_history'));
       _role_watchdog_notification($rid, $vars);
 
       return ROLE_WATCHDOG_ROLE_CHANGE;
     }
     else {
-      watchdog('role_watchdog', 'Unable to save record in _role_watchdog_add_role()', array(), WATCHDOG_ERROR);
+      watchdog('role_watchdog', 'Unable to save record in _role_watchdog_add_role()', array(), WATCHDOG_ERROR, l(t('view'), 'user/' . $account->uid . '/role_history'));
       return ROLE_WATCHDOG_ROLE_NOCHANGE;
     }
   }
@@ -221,13 +221,13 @@ function _role_watchdog_remove_role($rid, $old_roles = array(), $account, $in_ar
         '!account' => $account->name,
         '!account_id' => $account->uid,
       );
-      watchdog('role_watchdog', $vars['body'], $vars);
+      watchdog('role_watchdog', $vars['body'], $vars, WATCHDOG_NOTICE, l(t('view'), 'user/' . $account->uid . '/role_history'));
       _role_watchdog_notification($rid, $vars);
 
       return ROLE_WATCHDOG_ROLE_CHANGE;
     }
     else {
-      watchdog('role_watchdog', 'Unable to save record in _role_watchdog_remove_role()', array(), WATCHDOG_ERROR);
+      watchdog('role_watchdog', 'Unable to save record in _role_watchdog_remove_role()', array(), WATCHDOG_ERROR, l(t('view'), 'user/' . $account->uid . '/role_history'));
       return ROLE_WATCHDOG_ROLE_NOCHANGE;
     }
   }
