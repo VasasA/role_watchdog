@@ -41,7 +41,6 @@ function role_watchdog_permission() {
 
 /**
  * Implements hook_menu().
-().
  */
 function role_watchdog_menu() {
   $items = array();
@@ -117,7 +116,6 @@ function role_watchdog_user_save($uid, &$form, $account) {
     unset($new_roles[0]);
   }
 
-if (0) { print '<pre>';print_r($account->roles);print_r($old_roles);print_r($form['roles']);print_r($new_roles);print '</pre>';die(); }   
   $count = 0;
 
   // Is role added?
@@ -130,7 +128,7 @@ if (0) { print '<pre>';print_r($account->roles);print_r($old_roles);print_r($for
   }
 
   if ($count) {
-    drupal_set_message(t('Role @change_has been logged.', array('@change_has' => format_plural($count, 'change has', 'changes have'))));
+    drupal_set_message(format_plural($count, t('Role change has been logged.'), t('Role changes have been logged.')));
   }
 }
 
