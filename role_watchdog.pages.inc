@@ -21,6 +21,24 @@ function role_watchdog_history($account) {
   $roles_output = count($roles_account) ? '<h3>' . t('Roles') . '</h3>' . theme('item_list', array('items' => array_keys(array_flip($roles_account)))) : '';
 
   $view_profile = user_access('access user profiles');
+  $header = array(
+    array(
+      'data' => t('Date'),
+      'style' => 'width: 25%;',
+    ),
+    array(
+      'data' => t('Role'),
+      'style' => 'width: 30%;',
+    ),
+    array(
+      'data' => t('Change'),
+      'style' => 'width: 15%;',
+    ),
+    array(
+      'data' => t('User'),
+      'style' => 'width: 40%;',
+    ),
+  );
 
   $result = db_query('SELECT rw.rid, rw.action, rw.uid, rw.stamp, u.name FROM {role_watchdog} rw INNER JOIN {users} u USING (uid) WHERE rw.aid = :aid ORDER BY rw.stamp DESC', array(':aid' => $account->uid));
   while ($row = $result->fetchObject()) {
@@ -33,25 +51,6 @@ function role_watchdog_history($account) {
   }
 
   if (sizeof($rows)) {
-    $header = array(
-      array(
-        'data' => t('Date'),
-        'style' => 'width: 25%;',
-      ),
-      array(
-        'data' => t('Role'),
-        'style' => 'width: 30%;',
-      ),
-      array(
-        'data' => t('Change'),
-        'style' => 'width: 15%;',
-      ),
-      array(
-        'data' => t('User'),
-        'style' => 'width: 40%;',
-      ),
-    );
-
     $output .= '<h3>' . t('Role History') . '</h3>' . theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('style' => 'width: 99%;')));
   }
 
@@ -66,25 +65,6 @@ function role_watchdog_history($account) {
   }
 
   if (sizeof($rows2)) {
-    $header = array(
-      array(
-        'data' => t('Date'),
-        'style' => 'width: 25%;',
-      ),
-      array(
-        'data' => t('Role'),
-        'style' => 'width: 30%;',
-      ),
-      array(
-        'data' => t('Change'),
-        'style' => 'width: 15%;',
-      ),
-      array(
-        'data' => t('User'),
-        'style' => 'width: 40%;',
-      ),
-    );
-
     $output .= '<h3>' . t('Role Changes Made') . '</h3>' . theme('table', array('header' => $header, 'rows' => $rows2, 'attributes' => array('style' => 'width: 99%;')));
   }
 

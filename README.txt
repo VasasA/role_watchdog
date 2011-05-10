@@ -10,9 +10,6 @@ whenever a change occurs.
 This module might be useful when there are multiple administrators for a site, 
 and you need auditing or alerting of manual role changes.
 
-2010-04-28: the Role history tab is no longer optional. Going forward, 5.x will
-no longer be supported.
-
 
 Dependencies
 ---------------
@@ -21,8 +18,8 @@ None. Database logging is a Core (optional) module.
 Tested compatible with:
 * user edit (e.g. http://example.com/user/3/edit)
 * user list (e.g. http://example.com/admin/user/user)
-* Views Bulk Operations (VBO) 6.x-1.10, 7.x-3.x-dev
-* Role Delegation 6.x-1.4, 7.x-1.0
+* Views Bulk Operations (VBO) 7.x-3.x-dev
+* Role Delegation 7.x-1.0
 
 Related Modules
 ---------------
@@ -35,15 +32,6 @@ Administer Users by Role (http://drupal.org/project/administerusersbyrole)
 Role Change Notify (http://drupal.org/project/role_change_notify)
   the mirror functionality of Role watchdog, notifying the user when a role is
   added to their account.
-
-
-Installation
----------------
-1. install module: copy role_watchdog directory and all its contents to your 
-   modules directory
-2. enable module: admin/build/modules
-3. configure module: admin/user/roles/role_watchdog
-4. configure access permissions: admin/user/permissions#module-role_watchdog
 
 
 Usage
@@ -62,20 +50,12 @@ least one Monitor role and one Notify role must be selected for this
 functionality.
 
 
-
-Download
----------------
-Download package and report bugs, feature requests, or submit a patch from the 
-project page on the Drupal web site.
-http://drupal.org/project/role_watchdog
-
-
 Author
 ---------------
 John Money
 ossemble LLC.
 http://ossemble.com
 
-Module development sponsored by LifeWire, a service of About.com, a part of 
-The New York Times Company.
+Module development originally sponsored by LifeWire, a service of About.com, a 
+part of The New York Times Company.
 http://www.lifewire.com

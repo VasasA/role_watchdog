@@ -99,22 +99,27 @@ function role_watchdog_user_cancel($edit, $account, $method) {
  * Process role add/remove.
  */
 function role_watchdog_user_save($uid, &$form, $account) {
+  // Incoming format: array([2] => authenticated user, [3] => test role,)
   if ($account->is_new) {
     $old_roles = array();
   }
   else {
     $old_roles = $account->roles;
     unset($old_roles[DRUPAL_AUTHENTICATED_RID]); // No built-in roles.
-    $old_roles = array_flip($old_roles);
-//    unset($old_roles[0]);
+    if (!empty($old_roles)) {
+      $old_roles = array_flip($old_roles);
+    }
   }
+  // Outgoing format: array([test role] => 3,)
 
+  // Incoming format: array([3] => 3, [2] => 1,)
   $new_roles = $form['roles'];
   unset($new_roles[DRUPAL_AUTHENTICATED_RID]); // No built-in roles.
   if (!empty($new_roles)) {
     $new_roles = array_flip($new_roles);
     unset($new_roles[0]);
   }
+  // Outgoing format: array([3] => 3,)
 
   $count = 0;
 
