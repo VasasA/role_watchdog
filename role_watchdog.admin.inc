@@ -14,6 +14,17 @@
 function role_watchdog_admin_settings() {
   $form = array();
 
+  $form['reports'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Reports'),
+    '#description' => t('Role watchdog presents three reports: a global !grants, that shows all role changes made on the system, and two per-user report pages, showing role history (role changes made to that user), and role grants (role changes made by that user).  You may configure how many items appear on each page of these reports here.', array('!grants' => l(t('grants report'), 'admin/reports/role_watchdog'))),
+  );
+  $form['reports']['role_watchdog_pager'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Items per page'),
+    '#default_value' => variable_get('role_watchdog_pager', 50),
+  );
+
   $roles = user_roles();
   unset($roles[DRUPAL_ANONYMOUS_RID], $roles[DRUPAL_AUTHENTICATED_RID]); // No built-in roles.
   if (!count($roles)) {

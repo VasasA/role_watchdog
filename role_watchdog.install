@@ -12,6 +12,12 @@ function role_watchdog_schema() {
   $schema['role_watchdog'] = array(
     'description' => 'Stores log of all role changes.',
     'fields' => array(
+      'hid' => array(
+        'description' => t('ID of the history entry.'),
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
       'aid' => array(
         'description' => 'User ID of account.',
         'type' => 'int',
@@ -46,6 +52,7 @@ function role_watchdog_schema() {
     'indexes' => array(
       'aid' => array('aid'),
     ),
+    'primary key' => array('hid')
   );
 
   return $schema;
@@ -68,4 +75,16 @@ function role_watchdog_uninstall() {
   cache_clear_all('variables', 'cache');
 
   drupal_set_message(t('Role watchdog table and variables removed.'));
+}
+
+/**
+ * Add a history id primary key ('hid') to the role_watchdog table
+ */
+function role_watchdog_update_7101() {
+  db_add_field('role_watchdog', 'hid', array(
+    'type' => 'serial',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+  ),
+  array('primary key' => array('hid')));
 }

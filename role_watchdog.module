@@ -10,6 +10,7 @@ define('ROLE_WATCHDOG_ROLE_ADD', 1);
 define('ROLE_WATCHDOG_ROLE_REMOVE', 0);
 define('ROLE_WATCHDOG_ROLE_CHANGE', 1);
 define('ROLE_WATCHDOG_ROLE_NOCHANGE', 0);
+define('ROLE_WATCHDOG_NO_ROLE', 0);
 
 /**
  * Implements hook_help().
@@ -17,7 +18,7 @@ define('ROLE_WATCHDOG_ROLE_NOCHANGE', 0);
 function role_watchdog_help($path, $arg) {
   switch ($path) {
     case 'admin/help#role_watchdog':
-      return 
+      return
       '<p>' . t('Role watchdog will automatically start recording all role changes. No further configuration is necessary for this functionality, the module will do this "out of the box". A record of these changes is shown in a Role history tab on each user\'s page and optionally in the Watchdog log if enabled. Users will need  either "View role history" or "View own role history" access permissions to  view the tab.') . '</p>' .
       '<p>' . t('Role watchdog can optionally email members of selected Notify roles when selected Monitor roles are added or removed. This was specifically added to keep a closer eye on certain role changes, such as an Administrator role. At least one Monitor role and one Notify role must be selected for this functionality.') . '</p>';
   }
@@ -55,28 +56,72 @@ function role_watchdog_menu() {
     'file' => 'role_watchdog.admin.inc',
   );
 
-  $items['user/%user/role_history'] = array(
-    'title' => 'Role history',
+  $items['admin/reports/role_grants'] = array(
+    'title' => 'Role grants report',
+    'description' => 'View changes to role assignments for users.',
+    'page callback' => 'role_watchdog_report',
+    'access arguments' => array('view role history'),
+    'file' => 'role_watchdog.pages.inc',
+  );
+  $items['user/%user/track/role_history'] = array(
+    'title' => 'Track role history',
     'page callback' => 'role_watchdog_history',
     'page arguments' => array(1),
     'access callback' => '_role_watchdog_history_access',
     'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
     'file' => 'role_watchdog.pages.inc',
+    'weight' => '20',
+  );
+  $items['user/%user/track/role_grants'] = array(
+    'title' => 'Track role grants',
+    'page callback' => 'role_watchdog_grants',
+    'page arguments' => array(1),
+    'access callback' => '_role_watchdog_history_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'role_watchdog.pages.inc',
+    'weight' => '21',
   );
 
   return $items;
 }
 
 /**
+ * Cache user roles in case a poorly-behave module modifies
+ * $account before calling user save.
+ */
+function _role_watchdog_user_roles_cache($uid, $roles = FALSE) {
+  static $user_roles = array();
+  if (!isset($user_roles[$uid]) && is_array($roles)) {
+    $user_roles[$uid] = $roles;
+  }
+  if (!isset($user_roles[$uid])) {
+    return array();
+  }
+  else {
+    return $user_roles[$uid];
+  }
+}
+
+/**
+ * Implements hook_user_load().
+ */
+function role_watchdog_user_load($users) {
+  foreach ($users as $uid => $user) {
+    _role_watchdog_user_roles_cache($uid, $user->roles);
+  }
+}
+
+/**
  * Implements hook_user_presave().
  */
 function role_watchdog_user_presave(&$edit, $account, $category) {
-  global $user;
-  if ($user->uid != $account->uid) {
-    if (isset($edit['roles'])) {
-      role_watchdog_user_save((isset($account->uid) ? $account->uid : FALSE), $edit, $account);
-    }
+  if (isset($edit['roles'])) {
+    role_watchdog_user_save((isset($account->uid) ? $account->uid : FALSE), $edit, $account);
+  }
+  if (isset($account->uid) && array_key_exists('status', $edit)) {
+    role_watchdog_user_block($account, $edit['status']);
   }
 }
 
@@ -96,19 +141,28 @@ function role_watchdog_user_cancel($edit, $account, $method) {
 }
 
 /**
+ * Process user block / unblock
+ */
+function role_watchdog_user_block($account, $status) {
+  if ($account->status != $status) {
+    if ($status) {
+      return _role_watchdog_process_role_changes($account, array(DRUPAL_AUTHENTICATED_RID), array());
+    }
+    else {
+      return _role_watchdog_process_role_changes($account, array(), array(DRUPAL_AUTHENTICATED_RID));
+    }
+  }
+}
+
+/**
  * Process role add/remove.
  */
 function role_watchdog_user_save($uid, &$form, $account) {
   // Incoming format: array([2] => authenticated user, [3] => test role,)
-  if ($account->is_new) {
-    $old_roles = array();
-  }
-  else {
-    $old_roles = $account->roles;
-    unset($old_roles[DRUPAL_AUTHENTICATED_RID]); // No built-in roles.
-    if (!empty($old_roles)) {
-      $old_roles = array_flip($old_roles);
-    }
+  $old_roles = _role_watchdog_user_roles_cache($account->uid);
+  unset($old_roles[DRUPAL_AUTHENTICATED_RID]); // No built-in roles.
+  if (!empty($old_roles)) {
+    $old_roles = array_flip($old_roles);
   }
   // Outgoing format: array([test role] => 3,)
 
@@ -120,16 +174,29 @@ function role_watchdog_user_save($uid, &$form, $account) {
     unset($new_roles[0]);
   }
   // Outgoing format: array([3] => 3,)
+  return _role_watchdog_process_role_changes($account, $new_roles, $old_roles);
+}
 
+function _role_watchdog_process_role_changes($account, $new_roles, $old_roles) {
   $count = 0;
 
   // Is role added?
   foreach ($new_roles as $rid) {
-    $count += _role_watchdog_add_role($rid, $old_roles, $account);
+    if (!in_array($rid, $old_roles)) {
+      $record = _role_watchdog_add_role($rid, $account);
+      if (is_array($record)) {
+        $count = $count + 1;
+      }
+    }
   }
   // Is role removed?
   foreach ($old_roles as $rid) {
-    $count += _role_watchdog_remove_role($rid, $new_roles, $account, FALSE);
+    if (!in_array($rid, $new_roles)) {
+      $record = _role_watchdog_remove_role($rid, $account);
+      if (is_array($record)) {
+        $count = $count + 1;
+      }
+    }
   }
 
   if ($count) {
@@ -164,38 +231,35 @@ function role_watchdog_mail($key, &$message, $params) {
  *
  * Handles addition of roles.
  */
-function _role_watchdog_add_role($rid, $old_roles = array(), $account) {
-  if (!in_array($rid, $old_roles)) {
-    global $user;
-    $roles = user_roles();
+function _role_watchdog_add_role($rid, $account) {
+  global $user;
+  $roles = user_roles();
 
-    $record = array(
-      'aid' => $account->uid,
-      'rid' => $rid,
-      'action' => ROLE_WATCHDOG_ROLE_ADD,
-      'uid' => $user->uid,
-      'stamp' => REQUEST_TIME,
+  $record = array(
+    'aid' => $account->uid,
+    'rid' => $rid,
+    'action' => ROLE_WATCHDOG_ROLE_ADD,
+    'uid' => $user->uid,
+    'stamp' => REQUEST_TIME,
+  );
+  if (drupal_write_record('role_watchdog', $record)) {
+    $vars = array(
+      'body' => 'Role !role!role_modifier added to !account by !user',
+      '!role' => check_plain($roles[$rid]),
+      '!user' => check_plain($user->name),
+      '!user_id' => $user->uid,
+      '!account' => check_plain($account->name),
+      '!account_id' => $account->uid,
     );
-    if (drupal_write_record('role_watchdog', $record)) {
-      $vars = array(
-        'body' => 'Role !role added to !account by !user',
-        '!role' => $roles[$rid],
-        '!user' => $user->name,
-        '!user_id' => $user->uid,
-        '!account' => $account->name,
-        '!account_id' => $account->uid,
-      );
-      watchdog('role_watchdog', $vars['body'], $vars, WATCHDOG_NOTICE, l(t('view'), 'user/' . $account->uid . '/role_history'));
-      _role_watchdog_notification($rid, $vars);
+    watchdog('role_watchdog', $vars['body'], $vars, WATCHDOG_NOTICE, l(t('view'), 'user/' . $account->uid . '/track/role_history'));
+    _role_watchdog_notification($rid, $vars);
 
-      return ROLE_WATCHDOG_ROLE_CHANGE;
-    }
-    else {
-      watchdog('role_watchdog', 'Unable to save record in _role_watchdog_add_role()', array(), WATCHDOG_ERROR, l(t('view'), 'user/' . $account->uid . '/role_history'));
-      return ROLE_WATCHDOG_ROLE_NOCHANGE;
-    }
+    return $record;
   }
-  return ROLE_WATCHDOG_ROLE_NOCHANGE;
+  else {
+    watchdog('role_watchdog', 'Unable to save record in _role_watchdog_add_role()', array(), WATCHDOG_ERROR, l(t('view'), 'user/' . $account->uid . '/track/role_history'));
+    return ROLE_WATCHDOG_ROLE_NOCHANGE;
+  }
 }
 
 /**
@@ -203,38 +267,35 @@ function _role_watchdog_add_role($rid, $old_roles = array(), $account) {
  *
  * Handles removal of roles.
  */
-function _role_watchdog_remove_role($rid, $old_roles = array(), $account, $in_array = TRUE) {
-  if ($rid > DRUPAL_AUTHENTICATED_RID && (in_array($rid, $old_roles) xor !$in_array)) {
-    global $user;
-    $roles = user_roles();
+function _role_watchdog_remove_role($rid, $account) {
+  global $user;
+  $roles = user_roles();
 
-    $record = array(
-      'aid' => $account->uid,
-      'rid' => $rid,
-      'action' => 0,
-      'uid' => $user->uid,
-      'stamp' => REQUEST_TIME,
+  $record = array(
+    'aid' => $account->uid,
+    'rid' => $rid,
+    'action' => ROLE_WATCHDOG_ROLE_REMOVE,
+    'uid' => $user->uid,
+    'stamp' => REQUEST_TIME,
+  );
+  if (drupal_write_record('role_watchdog', $record)) {
+    $vars += array(
+      'body' => 'Role !role removed from !account by !user',
+      '!role' => check_plain($roles[$rid]),
+      '!user' => check_plain($user->name),
+      '!user_id' => $user->uid,
+      '!account' => check_plain($account->name),
+      '!account_id' => $account->uid,
     );
-    if (drupal_write_record('role_watchdog', $record)) {
-      $vars = array(
-        'body' => 'Role !role removed from !account by !user',
-        '!role' => $roles[$rid],
-        '!user' => $user->name,
-        '!user_id' => $user->uid,
-        '!account' => $account->name,
-        '!account_id' => $account->uid,
-      );
-      watchdog('role_watchdog', $vars['body'], $vars, WATCHDOG_NOTICE, l(t('view'), 'user/' . $account->uid . '/role_history'));
-      _role_watchdog_notification($rid, $vars);
+    watchdog('role_watchdog', $vars['body'], $vars, WATCHDOG_NOTICE, l(t('view'), 'user/' . $account->uid . '/track/role_history'));
+    _role_watchdog_notification($rid, $vars);
 
-      return ROLE_WATCHDOG_ROLE_CHANGE;
-    }
-    else {
-      watchdog('role_watchdog', 'Unable to save record in _role_watchdog_remove_role()', array(), WATCHDOG_ERROR, l(t('view'), 'user/' . $account->uid . '/role_history'));
-      return ROLE_WATCHDOG_ROLE_NOCHANGE;
-    }
+    return $record;
   }
-  return ROLE_WATCHDOG_ROLE_NOCHANGE;
+  else {
+    watchdog('role_watchdog', 'Unable to save record in _role_watchdog_remove_role()', array(), WATCHDOG_ERROR, l(t('view'), 'user/' . $account->uid . '/track/role_history'));
+    return ROLE_WATCHDOG_ROLE_NOCHANGE;
+  }
 }
 
 /**
