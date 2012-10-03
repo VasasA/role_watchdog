@@ -279,7 +279,7 @@ function _role_watchdog_remove_role($rid, $account) {
     'stamp' => REQUEST_TIME,
   );
   if (drupal_write_record('role_watchdog', $record)) {
-    $vars += array(
+    $vars = array(
       'body' => 'Role !role removed from !account by !user',
       '!role' => check_plain($roles[$rid]),
       '!user' => check_plain($user->name),
