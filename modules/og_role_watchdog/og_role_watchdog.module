@@ -287,5 +287,5 @@ function _og_role_watchdog_write_group_information($record, $gid, $rid) {
  * Access callback for viewing role grants page for one group.
  */
 function _og_role_watchdog_node_grants_access($node) {
-  return (node_access('view', $node)) && (user_access('view role history'));
+  return og_is_group_type('node', $node->type) && node_access('view', $node) && user_access('view role history');
 }
