@@ -37,6 +37,10 @@ function role_watchdog_permission() {
       'title' => t('View own role history'),
       'description' => t('View role changes on own user page'),
     ),
+    'view role change message' => array(
+      'title' => t('View role change messages'),
+      'description' => t('View typical role change message when the targeted user logins in.'),
+    ),
   );
 }
 
@@ -199,7 +203,7 @@ function _role_watchdog_process_role_changes($account, $new_roles, $old_roles) {
     }
   }
 
-  if ($count) {
+  if ($count && user_access("view role change message")) {
     drupal_set_message(format_plural($count, t('Role change has been logged.'), t('Role changes have been logged.')));
   }
 }
