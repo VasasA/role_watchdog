@@ -174,6 +174,7 @@ function role_watchdog_report() {
 
 function _role_watchdog_history_rows($result, $roles, $actions) {
   $view_profile = user_access('access user profiles');
+  $rows = array();
   foreach ($result as $hid => $row) {
     $row_data = array(
       format_date($row->stamp),
