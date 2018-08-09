@@ -105,7 +105,7 @@ function role_watchdog_grants($account) {
   foreach ($result as $hid => $row) {
       $rows2[] = array(
         format_date($row->stamp),
-        $roles[$row->rid],
+        isset($roles[$row->rid]) ? $roles[$row->rid] : '[Unknown]',
         $row->action ? t('added to') : t('removed from'),
         $view_profile ? l($row->name, 'user/' . $row->aid) : $row->name,
       );
