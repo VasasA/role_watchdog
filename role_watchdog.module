@@ -325,6 +325,16 @@ function _role_watchdog_notification($rid, $vars = array()) {
         watchdog('role_watchdog', 'Unable to send notification to %recipient', array('%recipient' => $recipient), WATCHDOG_ERROR);
       }
     }
+
+    $notify_email = variable_get('role_watchdog_notify_email', NULL);
+    if (!empty($notify_email)) {
+      if (drupal_mail('role_watchdog', 'notification', $notify_email, language_default(), $vars)) {
+        watchdog('role_watchdog', 'Sent notification to %recipient', array('%recipient' => $notify_email), WATCHDOG_INFO);
+      }
+      else {
+        watchdog('role_watchdog', 'Unable to send notification to %recipient', array('%recipient' => $notify_email), WATCHDOG_ERROR);
+      }
+    }
   }
 }
 

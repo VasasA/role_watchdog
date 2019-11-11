@@ -64,11 +64,17 @@ function role_watchdog_admin_settings() {
   );
   $form['email']['role_watchdog_notify_roles'] = array(
     '#type' => 'select',
-    '#title' => t('Notify on change'),
+    '#title' => t('Notify role(s) on change'),
     '#options' => array(ROLE_WATCHDOG_SUPERUSER_RID => 'Superuser (uid 1)') + $roles,
     '#default_value' => variable_get('role_watchdog_notify_roles', NULL),
     '#description' => t('Select roles to notify on change.'),
     '#multiple' => TRUE,
+  );
+  $form['email']['role_watchdog_notify_email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Notify email on change'),
+    '#default_value' => variable_get('role_watchdog_notify_email', NULL),
+    '#description' => t('Email address to notify on change. Separate multiple emails using a comma (e.g. "foo@example.com,bar@example.com")'),
   );
 
   return system_settings_form($form);
