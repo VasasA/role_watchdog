@@ -178,8 +178,7 @@ function og_role_watchdog_report($node = NULL) {
   if ($node) {
     $query->join('og_role_watchdog', 'orw', 'orw.hid = rw.hid');
     list($id, $vid, $bundle_name) = entity_extract_ids('node', $node);
-    $group = og_get_group('node', $id);
-    $query->condition('orw.gid', $group->gid);
+    $query->condition('orw.gid', $id);
     unset($header[2]);
   }
   else {
@@ -265,13 +264,19 @@ function _og_role_watchdog_history_rows($result, $roles, $actions) {
 function _og_role_watchdog_row_group_name($gid, $rid, $og_rid, $roles) {
   $group_name = '-';
   if ($rid == ROLE_WATCHDOG_NO_ROLE) {
-    $group = og_load($gid);
+    $group = node_load($gid);
     if ($group) {
-      $group_entity = og_get_group($group->entity_type, $group->etid);
-      $query_gid = og_is_group_default_access($gid) ? 0 : $gid;
-      $og_roles = og_roles($query_gid);
-      $group_name = l($group_entity->label, $group->entity_type . '/' . $group->etid);
-      $role = $og_roles[$og_rid];
+      //@todo: Not sure if we need the default access check here. Wouldn't those be set on the user in some other place
+      // before you got to this point?
+      $query_gid = og_is_group_default_access('node', $gid) ? 0 : $gid;
+      $og_roles = og_roles('node', $group->type, $gid);
+      $group_name = l($group->title, 'node/' . $group->nid);
+      if ($og_rid > 0) {
+        $role = $og_roles[$og_rid];
+      }
+      else {
+        $role = t("undefined");
+      }
     }
   }
   else {
