@@ -13,6 +13,13 @@ define('ROLE_WATCHDOG_ROLE_NOCHANGE', 0);
 define('ROLE_WATCHDOG_NO_ROLE', 0);
 
 /**
+ * Implements hook_views_api().
+ */
+function role_watchdog_views_api() {
+  return array('api' => '3.0');
+}
+
+/**
  * Implements hook_help().
  */
 function role_watchdog_help($path, $arg) {
