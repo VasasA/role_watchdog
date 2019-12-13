@@ -231,7 +231,7 @@ function role_watchdog_mail($key, &$message, $params) {
   global $base_url;
   $language = $message['language'];
   $variables = array(
-    '!site' => variable_get('site_name', 'Drupal'),
+    '!site' => config_get('system.core', 'site_name'),
     '!uri' => $base_url,
   );
   $variables += $params;
@@ -324,7 +324,7 @@ function _role_watchdog_remove_role($rid, $account) {
  * Handles notification of changes in selected roles.
  */
 function _role_watchdog_notification($rid, $vars = array()) {
-  $monitor_roles = variable_get('role_watchdog_monitor_roles', NULL);
+  $monitor_roles = config_get('role_watchdog.settings', 'role_watchdog_monitor_roles');
   if (in_array($rid, (array) $monitor_roles)) {
     foreach (_role_watchdog_get_notification_list() as $recipient) {
       if (drupal_mail('role_watchdog', 'notification', $recipient, language_default(), $vars)) {
@@ -335,7 +335,7 @@ function _role_watchdog_notification($rid, $vars = array()) {
       }
     }
 
-    $notify_email = variable_get('role_watchdog_notify_email', NULL);
+    $notify_email = config_get('role_watchdog.settings', 'role_watchdog_notify_email');
     if (!empty($notify_email)) {
       if (drupal_mail('role_watchdog', 'notification', $notify_email, language_default(), $vars)) {
         watchdog('role_watchdog', 'Sent notification to %recipient', array('%recipient' => $notify_email), WATCHDOG_INFO);
@@ -357,7 +357,7 @@ function _role_watchdog_get_notification_list() {
 
   if (!isset($role_watchdog_notification_list)) {
     $role_watchdog_notification_list = array();
-    $notification_roles = variable_get('role_watchdog_notify_roles', array());
+    $notification_roles = config_get('role_watchdog.settings', 'role_watchdog_notify_roles');
 
     if (count($notification_roles)) {
       $result = db_query('SELECT DISTINCT u.mail FROM {users} u INNER JOIN {users_roles} r ON u.uid = r.uid WHERE r.rid IN (:roles)', array(':roles' => $notification_roles));

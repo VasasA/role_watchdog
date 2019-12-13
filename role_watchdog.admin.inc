@@ -13,6 +13,7 @@
  */
 function role_watchdog_admin_settings() {
   $form = array();
+  $config = config('role_watchdog.settings');
 
   $form['reports'] = array(
     '#type' => 'fieldset',
@@ -22,7 +23,7 @@ function role_watchdog_admin_settings() {
   $form['reports']['role_watchdog_pager'] = array(
     '#type' => 'textfield',
     '#title' => t('Items per page'),
-    '#default_value' => variable_get('role_watchdog_pager', 50),
+    '#default_value' => $config->get('role_watchdog_pager'),
   );
 
   $roles = user_roles();
@@ -58,7 +59,7 @@ function role_watchdog_admin_settings() {
     '#type' => 'select',
     '#title' => t('Monitor for change'),
     '#options' => $roles,
-    '#default_value' => variable_get('role_watchdog_monitor_roles', NULL),
+    '#default_value' => $config->get('role_watchdog_monitor_roles'),
     '#description' => t('Select roles to monitor for change.'),
     '#multiple' => TRUE,
   );
@@ -66,14 +67,14 @@ function role_watchdog_admin_settings() {
     '#type' => 'select',
     '#title' => t('Notify role(s) on change'),
     '#options' => array(ROLE_WATCHDOG_SUPERUSER_RID => 'Superuser (uid 1)') + $roles,
-    '#default_value' => variable_get('role_watchdog_notify_roles', NULL),
+    '#default_value' => $config->get('role_watchdog_notify_roles'),
     '#description' => t('Select roles to notify on change.'),
     '#multiple' => TRUE,
   );
   $form['email']['role_watchdog_notify_email'] = array(
     '#type' => 'textfield',
     '#title' => t('Notify email on change'),
-    '#default_value' => variable_get('role_watchdog_notify_email', NULL),
+    '#default_value' => $config->get('role_watchdog_notify_email'),
     '#description' => t('Email address to notify on change. Separate multiple emails using a comma (e.g. "foo@example.com,bar@example.com")'),
   );
 

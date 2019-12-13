@@ -41,7 +41,7 @@ function role_watchdog_history($account) {
   $query->innerJoin('users', 'u', 'rw.uid = u.uid');
   $result = $query
     ->extend('PagerDefault')
-    ->limit(variable_get('role_watchdog_pager', 50))
+    ->limit(config_get('role_watchdog.settings', 'role_watchdog_pager'))
     ->fields('rw', array('hid', 'rid', 'uid', 'action', 'stamp'))
     ->fields('u', array('name'))
     ->condition('rw.aid', $account->uid)
@@ -94,7 +94,7 @@ function role_watchdog_grants($account) {
   $query->innerJoin('users', 'u', 'rw.aid = u.uid');
   $result = $query
     ->extend('PagerDefault')
-    ->limit(variable_get('role_watchdog_pager', 50))
+    ->limit(config_get('role_watchdog.settings', 'role_watchdog_pager'))
     ->fields('rw', array('hid', 'rid', 'action', 'aid', 'stamp'))
     ->fields('u', array('name'))
     ->condition('rw.uid', $account->uid)
@@ -155,7 +155,7 @@ function role_watchdog_report() {
   $query->addField('rw', 'aid', 'uid');
   $result = $query
     ->extend('PagerDefault')
-    ->limit(variable_get('role_watchdog_pager', 50))
+    ->limit(config_get('role_watchdog.settings', 'role_watchdog_pager'))
     ->fields('rw', array('hid', 'rid', 'action', 'aid', 'stamp'))
     ->fields('u', array('name'))
     ->condition('rw.rid', ROLE_WATCHDOG_NO_ROLE, '<>')
