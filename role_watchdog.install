@@ -69,11 +69,6 @@ function role_watchdog_install() {
  * Implements hook_uninstall().
  */
 function role_watchdog_uninstall() {
-  db_delete('variable')
-    ->condition('name', 'role_watchdog_%', 'LIKE')
-    ->execute();
-  cache_clear_all('variables', 'cache');
-
   drupal_set_message(t('Role watchdog table and variables removed.'));
 }
 

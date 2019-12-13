@@ -389,3 +389,14 @@ function _role_watchdog_history_access($account) {
   global $user;
   return ($user->uid == $account->uid && user_access('view own role history')) ? TRUE : FALSE;
 }
+
+/**
+ * Implements hook_config_info().
+ */
+function role_watchdog_config_info() {
+  $prefixes['role_watchdog.settings'] = array(
+    'label' => t('Role Watchdog settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
