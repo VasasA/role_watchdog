@@ -27,7 +27,7 @@ function role_watchdog_admin_settings() {
   );
 
   $roles = user_roles();
-  unset($roles[DRUPAL_ANONYMOUS_RID], $roles[DRUPAL_AUTHENTICATED_RID]); // No built-in roles.
+  unset($roles[BACKDROP_ANONYMOUS_ROLE], $roles[BACKDROP_AUTHENTICATED_ROLE]); // No built-in roles.
   if (!count($roles)) {
     $form['watchdog'] = array(
       '#type' => 'fieldset',

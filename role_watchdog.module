@@ -154,10 +154,10 @@ function role_watchdog_user_cancel($edit, $account, $method) {
 function role_watchdog_user_block($account, $status) {
   if ($account->status != $status) {
     if ($status) {
-      return _role_watchdog_process_role_changes($account, array(DRUPAL_AUTHENTICATED_RID), array());
+      return _role_watchdog_process_role_changes($account, array(BACKDROP_AUTHENTICATED_ROLE), array());
     }
     else {
-      return _role_watchdog_process_role_changes($account, array(), array(DRUPAL_AUTHENTICATED_RID));
+      return _role_watchdog_process_role_changes($account, array(), array(BACKDROP_AUTHENTICATED_ROLE));
     }
   }
 }
@@ -168,7 +168,7 @@ function role_watchdog_user_block($account, $status) {
 function role_watchdog_user_save($uid, &$form, $account) {
   // Incoming format: array([2] => authenticated user, [3] => test role,)
   $old_roles = _role_watchdog_user_roles_cache($account->uid);
-  unset($old_roles[DRUPAL_AUTHENTICATED_RID]); // No built-in roles.
+  unset($old_roles[BACKDROP_AUTHENTICATED_ROLE]); // No built-in roles.
   if (!empty($old_roles)) {
     $old_roles = array_flip($old_roles);
   }
@@ -176,7 +176,7 @@ function role_watchdog_user_save($uid, &$form, $account) {
 
   // Incoming format: array([3] => 3, [2] => 1,)
   $new_roles = $form['roles'];
-  unset($new_roles[DRUPAL_AUTHENTICATED_RID]); // No built-in roles.
+  unset($new_roles[BACKDROP_AUTHENTICATED_ROLE]); // No built-in roles.
   if (!empty($new_roles)) {
     $new_roles = array_flip($new_roles);
     unset($new_roles[0]);
