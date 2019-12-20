@@ -254,7 +254,7 @@ function _role_watchdog_add_role($rid, $account) {
     $vars = array(
       'body' => 'Role !role added to !account by !user',
       '!role' => check_plain($roles[$rid]),
-      '!user' => check_plain(format_username($user)),
+      '!user' => check_plain(user_format_name($user)),
       '!user_id' => $user->uid,
       '!account' => check_plain($account->name),
       '!account_id' => $account->uid,
@@ -290,7 +290,7 @@ function _role_watchdog_remove_role($rid, $account) {
     $vars = array(
       'body' => 'Role !role removed from !account by !user',
       '!role' => check_plain($roles[$rid]),
-      '!user' => check_plain(format_username($user)),
+      '!user' => check_plain(user_format_name($user)),
       '!user_id' => $user->uid,
       '!account' => check_plain($account->name),
       '!account_id' => $account->uid,
