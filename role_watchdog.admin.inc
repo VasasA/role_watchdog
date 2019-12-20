@@ -14,7 +14,7 @@
 function role_watchdog_admin_settings() {
   $form = array();
   $config = config('role_watchdog.settings');
-
+  $form['#config'] = 'role_watchdog.settings';
   $form['reports'] = array(
     '#type' => 'fieldset',
     '#title' => t('Reports'),
