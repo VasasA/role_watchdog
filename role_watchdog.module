@@ -115,21 +115,21 @@ function role_watchdog_user_load($users) {
 /**
  * Implements hook_user_presave().
  */
-function role_watchdog_user_presave(&$edit, $account, $category) {
-  if (isset($edit['roles'])) {
-    role_watchdog_user_save((isset($account->uid) ? $account->uid : FALSE), $edit, $account);
+function role_watchdog_user_presave($account) {
+  if (isset($account->roles)) {
+    role_watchdog_user_save((isset($account->uid) ? $account->uid : FALSE), $account);
   }
-  if (isset($account->uid, $account->status) && array_key_exists('status', $edit)) {
-    role_watchdog_user_block($account, $edit['status']);
+  if (isset($account->original->uid, $account->status)) {
+    role_watchdog_user_block($account->original, $account->status);
   }
 }
 
 /**
  * Implements hook_user_insert().
  */
-function role_watchdog_user_insert(&$edit, $account, $category) {
-  if (isset($account->uid) && isset($edit['roles'])) {
-    role_watchdog_user_save($account->uid, $edit, $account);
+function role_watchdog_user_insert($account) {
+  if (isset($account->uid) && isset($account->roles)) {
+    role_watchdog_user_save($account->uid, $account);
   }
 }
 
@@ -165,7 +165,7 @@ function role_watchdog_user_block($account, $status) {
 /**
  * Process role add/remove.
  */
-function role_watchdog_user_save($uid, &$form, $account) {
+function role_watchdog_user_save($uid, $account) {
   // Incoming format: array([2] => authenticated user, [3] => test role,)
   $old_roles = _role_watchdog_user_roles_cache($account->uid);
   unset($old_roles[BACKDROP_AUTHENTICATED_ROLE]); // No built-in roles.
@@ -175,7 +175,7 @@ function role_watchdog_user_save($uid, &$form, $account) {
   // Outgoing format: array([test role] => 3,)
 
   // Incoming format: array([3] => 3, [2] => 1,)
-  $new_roles = $form['roles'];
+  $new_roles = $account->roles;
   unset($new_roles[BACKDROP_AUTHENTICATED_ROLE]); // No built-in roles.
   if (!empty($new_roles)) {
     $new_roles = array_flip($new_roles);
