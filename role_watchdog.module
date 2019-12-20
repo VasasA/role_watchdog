@@ -20,18 +20,6 @@ function role_watchdog_views_api() {
 }
 
 /**
- * Implements hook_help().
- */
-function role_watchdog_help($path, $arg) {
-  switch ($path) {
-    case 'admin/help#role_watchdog':
-      return
-      '<p>' . t('Role watchdog will automatically start recording all role changes. No further configuration is necessary for this functionality, the module will do this "out of the box". A record of these changes is shown in a Role history tab on each user\'s page and optionally in the Watchdog log if enabled. Users will need  either "View role history" or "View own role history" access permissions to  view the tab.') . '</p>' .
-      '<p>' . t('Role watchdog can optionally email members of selected Notify roles when selected Monitor roles are added or removed. This was specifically added to keep a closer eye on certain role changes, such as an Administrator role. At least one Monitor role and one Notify role must be selected for this functionality.') . '</p>';
-  }
-}
-
-/**
  * Implements hook_permission().
  */
 function role_watchdog_permission() {
