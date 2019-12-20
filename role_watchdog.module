@@ -240,7 +240,7 @@ function role_watchdog_mail($key, &$message, $params) {
 
   switch ($key) {
     case 'notification':
-      $message['subject'] = str_replace(array("\r", "\n"), '', t('Role watchdog notification on !site', $variables, array('langcode' => $language->language)));
+      $message['subject'] = str_replace(array("\r", "\n"), '', t('Role watchdog notification on !site', $variables, array('langcode' => $language->langcode)));
       $message['body'][] = strtr($params['body'], $variables);
       break;
   }
