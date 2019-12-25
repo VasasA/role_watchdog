@@ -32,7 +32,7 @@ function role_watchdog_admin_settings() {
     $form['watchdog'] = array(
       '#type' => 'fieldset',
       '#title' => t('No roles found'),
-      '#description' => t('Role watchdog requires custom roles to function. !add', array('!add' => l(t('Add Roles'), 'admin/people/permissions/roles'))),
+      '#description' => t('Role watchdog requires custom roles to function. !add', array('!add' => l(t('Add Roles'), 'admin/config/people/roles'))),
     );
 
     return $form;
