@@ -18,7 +18,7 @@ function role_watchdog_admin_settings() {
   $form['reports'] = array(
     '#type' => 'fieldset',
     '#title' => t('Reports'),
-    '#description' => t('Role watchdog presents three reports: a global !grants, that shows all role changes made on the system, and two per-user report pages, showing role history (role changes made to that user), and role grants (role changes made by that user).  You may configure how many items appear on each page of these reports here.', array('!grants' => l(t('grants report'), 'admin/reports/role_watchdog'))),
+    '#description' => t('Role watchdog presents three reports: a global !grants, that shows all role changes made on the system, and two per-user report pages, showing role history (role changes made to that user), and role grants (role changes made by that user).  You may configure how many items appear on each page of these reports here.', array('!grants' => l(t('grants report'), 'admin/reports/role_grants'))),
   );
   $form['reports']['role_watchdog_pager'] = array(
     '#type' => 'textfield',
@@ -41,7 +41,7 @@ function role_watchdog_admin_settings() {
   $form['watchdog'] = array(
     '#type' => 'fieldset',
     '#title' => t('Logging'),
-    '#description' => t('Role watchdog automatically logs all role changes made. No further configuration is necessary for this functionality. Users will need either "View role history" or "View own role history" !access to view the Role history tab.', array('!access' => l(t('access permissions'), 'admin/people/permissions', array('fragment' => 'module-role_watchdog')))),
+    '#description' => t('Role watchdog automatically logs all role changes made. No further configuration is necessary for this functionality. Users will need either "View role history" or "View own role history" !access to view the Role history tab.', array('!access' => l(t('access permissions'), 'admin/config/people/permissions', array('fragment' => 'module-role_watchdog')))),
   );
   $form['watchdog']['description'] = array(
     '#type' => 'checkbox',
