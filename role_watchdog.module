@@ -166,22 +166,14 @@ function role_watchdog_user_block($account, $status) {
  * Process role add/remove.
  */
 function role_watchdog_user_save($uid, $account) {
-  // Incoming format: array([2] => authenticated user, [3] => test role,)
   $old_roles = _role_watchdog_user_roles_cache($account->uid);
-  unset($old_roles[BACKDROP_AUTHENTICATED_ROLE]); // No built-in roles.
-  if (!empty($old_roles)) {
-    $old_roles = array_flip($old_roles);
-  }
-  // Outgoing format: array([test role] => 3,)
+  // No built-in roles.
+  unset($old_roles[array_search(BACKDROP_AUTHENTICATED_ROLE, $old_roles)]);
 
-  // Incoming format: array([3] => 3, [2] => 1,)
   $new_roles = $account->roles;
-  unset($new_roles[BACKDROP_AUTHENTICATED_ROLE]); // No built-in roles.
-  if (!empty($new_roles)) {
-    $new_roles = array_flip($new_roles);
-    unset($new_roles[0]);
-  }
-  // Outgoing format: array([3] => 3,)
+  // No built-in roles.
+  unset($new_roles[array_search(BACKDROP_AUTHENTICATED_ROLE, $new_roles)]);
+
   return _role_watchdog_process_role_changes($account, $new_roles, $old_roles);
 }
 

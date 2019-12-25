@@ -26,9 +26,9 @@ function role_watchdog_schema() {
       ),
       'rid' => array(
         'description' => 'Role ID changed.',
-        'type' => 'int',
-        'unsigned' => 1,
+        'type' => 'varchar',
         'not null' => TRUE,
+        'length' => 64,
       ),
       'action' => array(
         'description' => 'Action (add or remove) performed.',
