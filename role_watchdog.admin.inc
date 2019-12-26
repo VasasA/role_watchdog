@@ -43,11 +43,10 @@ function role_watchdog_admin_settings() {
     '#title' => t('Logging'),
     '#description' => t('Role watchdog automatically logs all role changes made. No further configuration is necessary for this functionality. Users will need either "View role history" or "View own role history" !access to view the Role history tab.', array('!access' => l(t('access permissions'), 'admin/config/people/permissions', array('fragment' => 'module-role_watchdog')))),
   );
-  $form['watchdog']['description'] = array(
+  $form['watchdog']['role_watchdog_enable_logging'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable logging'),
-    '#default_value' => TRUE,
-    '#attributes' => array('disabled' => 'disabled'),
+    '#default_value' => $config->get('role_watchdog_enable_logging'),
   );
 
   $form['email'] = array(

@@ -3,5 +3,6 @@
     "role_watchdog_monitor_roles": null,
     "role_watchdog_notify_email": null,
     "role_watchdog_notify_roles": [],
-    "role_watchdog_pager": 50
+    "role_watchdog_pager": 50,
+    "role_watchdog_enable_logging": 1
 }

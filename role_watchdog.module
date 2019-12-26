@@ -178,6 +178,9 @@ function role_watchdog_user_save($uid, $account) {
 }
 
 function _role_watchdog_process_role_changes($account, $new_roles, $old_roles) {
+  if (!config_get('role_watchdog.settings', 'role_watchdog_enable_logging')) {
+    return;
+  }
   $count = 0;
 
   // Is role added?
