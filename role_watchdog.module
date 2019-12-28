@@ -343,7 +343,7 @@ function _role_watchdog_get_notification_list() {
     $notification_roles = config_get('role_watchdog.settings', 'role_watchdog_notify_roles');
 
     if (count($notification_roles)) {
-      $result = db_query('SELECT DISTINCT u.mail FROM {users} u INNER JOIN {users_roles} r ON u.uid = r.uid WHERE r.rid IN (:roles)', array(':roles' => $notification_roles));
+      $result = db_query('SELECT DISTINCT u.mail FROM {users} u INNER JOIN {users_roles} r ON u.uid = r.uid WHERE r.role IN (:roles)', array(':roles' => $notification_roles));
       while ($account = $result->fetchObject()) {
         $role_watchdog_notification_list[] = $account->mail;
       }
