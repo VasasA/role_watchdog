@@ -129,7 +129,7 @@ class role_watchdog_handler_field_rid extends views_handler_field {
     $rid = $values->role_watchdog_rid;
     if (!empty($rid)) {
       $role = user_role_load($rid);
-      return $role->name;
+      return $role->label;
     }
   }
 

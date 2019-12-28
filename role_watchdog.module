@@ -16,7 +16,10 @@ define('ROLE_WATCHDOG_NO_ROLE', 0);
  * Implements hook_views_api().
  */
 function role_watchdog_views_api() {
-  return array('api' => '3.0');
+  return array(
+    'api' => '3.0',
+    'path' => backdrop_get_path('module', 'role_watchdog'),
+  );
 }
 
 /**
