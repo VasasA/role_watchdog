@@ -62,12 +62,12 @@ function role_watchdog_schema() {
  * Implements hook_install().
  */
 function role_watchdog_install() {
-  drupal_set_message(st('Role watchdog table installed. !config', array('!config' => l(st('Configure Role watchdog'), 'admin/config/people/role_watchdog'))));
+  backdrop_set_message(st('Role watchdog table installed. !config', array('!config' => l(st('Configure Role watchdog'), 'admin/config/people/role_watchdog'))));
 }
 
 /**
  * Implements hook_uninstall().
  */
 function role_watchdog_uninstall() {
-  drupal_set_message(t('Role watchdog table and variables removed.'));
+  backdrop_set_message(t('Role watchdog table and variables removed.'));
 }

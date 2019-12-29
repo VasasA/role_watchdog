@@ -51,7 +51,7 @@ function role_watchdog_menu() {
   $items['admin/config/people/role_watchdog'] = array(
     'title' => 'Role watchdog',
     'description' => 'Logs changes to user roles.',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('role_watchdog_admin_settings'),
     'type' => MENU_NORMAL_ITEM,
     'access arguments' => array('administer site configuration'),
@@ -206,7 +206,7 @@ function _role_watchdog_process_role_changes($account, $new_roles, $old_roles) {
   }
 
   if ($count && user_access("view role change message")) {
-    drupal_set_message(format_plural($count, t('Role change has been logged.'), t('Role changes have been logged.')));
+    backdrop_set_message(format_plural($count, t('Role change has been logged.'), t('Role changes have been logged.')));
   }
 }
 
@@ -248,7 +248,7 @@ function _role_watchdog_add_role($rid, $account) {
     'uid' => $user->uid,
     'stamp' => REQUEST_TIME,
   );
-  if (drupal_write_record('role_watchdog', $record)) {
+  if (backdrop_write_record('role_watchdog', $record)) {
     $vars = array(
       'body' => 'Role !role added to !account by !user',
       '!role' => check_plain($roles[$rid]),
@@ -284,7 +284,7 @@ function _role_watchdog_remove_role($rid, $account) {
     'uid' => $user->uid,
     'stamp' => REQUEST_TIME,
   );
-  if (drupal_write_record('role_watchdog', $record)) {
+  if (backdrop_write_record('role_watchdog', $record)) {
     $vars = array(
       'body' => 'Role !role removed from !account by !user',
       '!role' => check_plain($roles[$rid]),
@@ -313,7 +313,7 @@ function _role_watchdog_notification($rid, $vars = array()) {
   $monitor_roles = config_get('role_watchdog.settings', 'role_watchdog_monitor_roles');
   if (in_array($rid, (array) $monitor_roles)) {
     foreach (_role_watchdog_get_notification_list() as $recipient) {
-      if (drupal_mail('role_watchdog', 'notification', $recipient, language_default(), $vars)) {
+      if (backdrop_mail('role_watchdog', 'notification', $recipient, language_default(), $vars)) {
         watchdog('role_watchdog', 'Sent notification to %recipient', array('%recipient' => $recipient), WATCHDOG_INFO);
       }
       else {
@@ -323,7 +323,7 @@ function _role_watchdog_notification($rid, $vars = array()) {
 
     $notify_email = config_get('role_watchdog.settings', 'role_watchdog_notify_email');
     if (!empty($notify_email)) {
-      if (drupal_mail('role_watchdog', 'notification', $notify_email, language_default(), $vars)) {
+      if (backdrop_mail('role_watchdog', 'notification', $notify_email, language_default(), $vars)) {
         watchdog('role_watchdog', 'Sent notification to %recipient', array('%recipient' => $notify_email), WATCHDOG_INFO);
       }
       else {

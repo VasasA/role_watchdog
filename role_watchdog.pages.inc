@@ -183,7 +183,7 @@ function _role_watchdog_history_rows($result, $roles, $actions) {
       $view_profile ? l($row->name, 'user/' . $row->uid) : $row->name,
     );
     if (isset($row->admin)) {
-      array_unshift($row_data,  $view_profile ? l($row->admin, 'user/' . $row->adminid) : $row->admin);
+      array_unshift($row_data, $view_profile ? l($row->admin, 'user/' . $row->adminid) : $row->admin);
     }
     $rows[] = $row_data;
   }
