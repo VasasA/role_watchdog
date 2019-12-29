@@ -83,7 +83,7 @@ complete text.
 Screenshots
 -----------
 Track role history tab on the user's page:
-![Role watchdog screenshot 1](https://github.com/backdrop-contrib/role_watchdog/blob/1.x-1.x/images/screenshot1.png)
+![Role watchdog screenshot 1](https://github.com/backdrop-contrib/role_watchdog/blob/1.x-2.x/images/screenshot1.png)
 
 Integration with Views module:
-![Role watchdog screenshot 2](https://github.com/backdrop-contrib/role_watchdog/blob/1.x-1.x/images/screenshot2.png)
+![Role watchdog screenshot 2](https://github.com/backdrop-contrib/role_watchdog/blob/1.x-2.x/images/screenshot2.png)
