@@ -1,0 +1,115 @@
+<?php
+/**
+ * @file
+ * Functional tests for Role Watchdog module.
+ */
+
+class RoleWatchdogBasicTestCase extends BackdropWebTestCase {
+
+  /**
+   * A user with various administrative privileges.
+   */
+  protected $admin_user;
+
+  /**
+   * A test user.
+   */
+  protected $test_user;
+
+  /**
+   * A test role.
+   */
+  protected $test_role;
+
+  function setUp() {
+    parent::setUp('role_watchdog');
+    // Create admin.
+    $this->admin_user = $this->backdropCreateUser(array(
+      'administer site configuration',
+      'access administration pages',
+      'administer permissions',
+      'administer users',
+      'assign roles',
+      'administer account settings',
+      'access user profiles',
+      'access site reports',
+      'view role history',
+      'view own role history',
+      'view role change message',
+      'flush caches',
+    ));
+    // Create a test role.
+    $this->test_role = $this->backdropCreateRole(array(), 'RW test role');
+    // Create a test user.
+    $this->test_user = $this->backdropCreateUser(array());
+    $this->backdropLogin($this->admin_user);
+    // Don't send email.
+    $post_data = array(
+      'user_mail_status_activated_notify' => FALSE,
+    );
+    $post_url = 'admin/config/people/emails';
+    $this->backdropPost($post_url, $post_data, t('Save configuration'));
+  }
+
+  function testBasicFeatures() {
+    // Add a role.
+    $post_data = array(
+      'roles[RW test role]' => 'RW test role',
+    );
+    $post_url = 'user/' . $this->test_user->uid . '/edit';
+    $this->backdropPost($post_url, $post_data, t('Save'));
+    $this->backdropGet('user/' . $this->test_user->uid . '/track/role_history');
+    $this->assertText('RW test role', 'The added role is logged on the "Track role history" page of the user.');
+    $this->assertText(t('added by'), 'Change is logged.');
+    $this->assertText($this->admin_user->name, 'Operator is logged.');
+
+    // Clear the log.
+    db_delete('role_watchdog')->execute();
+
+    // Remove a role.
+    $post_data['roles[RW test role]'] = FALSE;
+    $this->backdropPost($post_url, $post_data, t('Save'));
+    $this->backdropGet('user/' . $this->test_user->uid . '/track/role_history');
+    $this->assertText('RW test role', 'The removed role is logged on the "Track role history" page of the user.');
+    $this->assertText(t('removed by'), 'Change is logged.');
+    $this->assertText($this->admin_user->name, 'Operator is logged.');
+
+    // Block the user.
+    $post_data = array(
+      'status' => 0,
+    );
+    $this->backdropPost($post_url, $post_data, t('Save'));
+    $this->backdropGet('user/' . $this->test_user->uid . '/track/role_history');
+    $this->assertText(t('Authenticated'), 'The removed Authenticated role is logged on the "Track role history" page of the user.');
+
+    // Check the "Track role grants" page.
+    $this->backdropGet('user/' . $this->admin_user->uid . '/track/role_grants');
+    $this->assertText('RW test role', 'The removed role is logged on the "Track role grants" page of the operator.');
+    $this->assertText(t('removed from'), 'Change is logged.');
+    $this->assertText($this->test_user->name, 'User is logged.');
+
+    // Clear the log.
+    db_delete('role_watchdog')->execute();
+
+    // Enable the user.
+    $post_data = array(
+      'status' => 1,
+    );
+    $this->backdropPost($post_url, $post_data, t('Save'));
+    $this->backdropGet('user/' . $this->test_user->uid . '/track/role_history');
+    $this->assertText(t('Authenticated'), 'The added Authenticated role is logged on the "Track role history" page of the user.');
+    $this->assertText(t('added by'), 'Change is logged.');
+    $this->assertText($this->admin_user->name, 'Operator is logged.');
+
+    // Check the report page.
+    $this->backdropGet('admin/reports/role_grants');
+    $this->assertText(t('Authenticated'), 'The added role is logged on the "Role grants report" page.');
+    $this->assertText(t('added to'), 'Change is logged.');
+    $this->assertText($this->admin_user->name, 'Operator is logged.');
+    $this->assertText($this->test_user->name, 'User is logged.');
+
+    // Check the configuration page.
+    $this->backdropGet('admin/config/people/role_watchdog');
+    $this->assertText(t('Enable logging'), 'The configuration page is available.');
+   }
+}

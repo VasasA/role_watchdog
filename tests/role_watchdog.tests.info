@@ -1,0 +1,5 @@
+[RoleWatchdogBasicTestCase]
+name = Role Watchdog Basic Test
+description = Role Watchdog module basic features test
+group = Role Watchdog
+file = role_watchdog.test
