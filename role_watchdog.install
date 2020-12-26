@@ -71,3 +71,10 @@ function role_watchdog_install() {
 function role_watchdog_uninstall() {
   backdrop_set_message(t('Role watchdog table and variables removed.'));
 }
+
+/**
+ * Implements hook_update_last_removed().
+ */
+function role_watchdog_update_last_removed() {
+  return 7101;
+}
