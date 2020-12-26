@@ -78,3 +78,24 @@ function role_watchdog_uninstall() {
 function role_watchdog_update_last_removed() {
   return 7101;
 }
+
+/**
+ * Move role_watchdog module settings from variables to config.
+ */
+function role_watchdog_update_1000() {
+  // Migrate variables to config.
+  $config = config('role_watchdog.settings');
+  $config->set('role_watchdog_monitor_roles', update_variable_get('role_watchdog_monitor_roles', NULL));
+  $config->set('role_watchdog_notify_email', update_variable_get('role_watchdog_notify_email', NULL));
+  $config->set('role_watchdog_notify_roles', update_variable_get('role_watchdog_notify_roles', array()));
+  $config->set('role_watchdog_pager', update_variable_get('role_watchdog_pager', 50));
+  $config->set('role_watchdog_enable_logging', update_variable_get('role_watchdog_enable_logging', 1));
+  $config->save();
+
+  // Delete variables.
+  update_variable_del('role_watchdog_monitor_roles');
+  update_variable_del('role_watchdog_notify_email');
+  update_variable_del('role_watchdog_notify_roles');
+  update_variable_del('role_watchdog_pager');
+  update_variable_del('role_watchdog_enable_logging');
+}
