@@ -103,12 +103,12 @@ function role_watchdog_grants($account) {
     ->execute()
     ->fetchAllAssoc('hid');
   foreach ($result as $hid => $row) {
-      $rows2[] = array(
-        format_date($row->stamp),
-        isset($roles[$row->rid]) ? $roles[$row->rid] : '[Unknown]',
-        $row->action ? t('added to') : t('removed from'),
-        $view_profile ? l($row->name, 'user/' . $row->aid) : $row->name,
-      );
+    $rows2[] = array(
+      format_date($row->stamp),
+      isset($roles[$row->rid]) ? $roles[$row->rid] : '[Unknown]',
+      $row->action ? t('added to') : t('removed from'),
+      $view_profile ? l($row->name, 'user/' . $row->aid) : $row->name,
+    );
   }
 
   if (sizeof($rows2)) {
@@ -165,7 +165,7 @@ function role_watchdog_report() {
 
   $rows2 = _role_watchdog_history_rows($result, $roles, array(t('removed from'), t('added to'), t('requested by'), t('approved for')));
 
-   if (sizeof($rows2)) {
+  if (sizeof($rows2)) {
     $output .= theme('table', array('header' => $header, 'rows' => $rows2, 'attributes' => array('style' => 'width: 99%;')));
     $output .= theme('pager', array('tags' => NULL));
   }

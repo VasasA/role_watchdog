@@ -111,5 +111,5 @@ class RoleWatchdogBasicTestCase extends BackdropWebTestCase {
     // Check the configuration page.
     $this->backdropGet('admin/config/people/role_watchdog');
     $this->assertText(t('Enable logging'), 'The configuration page is available.');
-   }
+    }
 }

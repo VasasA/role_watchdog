@@ -12,7 +12,7 @@
  */
 
 /**
- * Implementation of hook_views_data().
+ * Implements hook_views_data().
  *
  * The purpose of this hook is to tell Views what data we make available.
  */
